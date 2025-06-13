@@ -5,27 +5,58 @@ include "bigint_func.circom";
 // 10 registers, 64 bits. registers can be overful
 // adds 43 bits to overflow, so don't input overful registers which are > 208 bits
 // input registers can also be negative; the overall input can be negative as well
-template Secp256k1PrimeReduce10Registers() {
-    signal input in[10];
+// template Secp256k1PrimeReduce10Registers() {
+//     signal input in[10];
 
-    signal output out[4];
-    var offset = (1<<32) + 977; // 33 bits
-    var offset2 = ((1<<33) * 977) + (977 ** 2); // 43 bits
+//     signal output out[4];
+//     var offset = (1<<32) + 977; // 33 bits
+//     var offset2 = ((1<<33) * 977) + (977 ** 2); // 43 bits
     
+//     out[3] <== (offset * in[7]) + in[3];
+//     out[2] <== (offset * in[6]) + in[2] + in[9];
+//     out[1] <== (offset2 * in[9]) + (offset * in[5]) + in[1] + in[8];
+//     out[0] <== (offset2 * in[8]) + (offset * in[4]) + in[0];
+// }
+
+// 10 registers, 64 bits. registers can be overful
+// adds 13 bits to overflow, so don't input overful registers which are > 238 bits
+// input registers can also be negative; the overall input can be negative as well
+template Ec25519PrimeReduce10Registers() {
+    signal input in[10];
+    
+    signal output out[4];
+    var offset = 38; // 6 bits
+    var offset2 = 38 * 38; // 11 bits
+
     out[3] <== (offset * in[7]) + in[3];
-    out[2] <== (offset * in[6]) + in[2] + in[9];
-    out[1] <== (offset2 * in[9]) + (offset * in[5]) + in[1] + in[8];
+    out[2] <== (offset * in[6]) + in[2];
+    out[1] <== (offset2 * in[9]) + (offset * in[5]) + in[1];
     out[0] <== (offset2 * in[8]) + (offset * in[4]) + in[0];
 }
 
 // 7 registers, 64 bits. registers can be overful
 // adds 33 bits to overflow, so don't input overful registers which are > 218 bits
 // input registers can also be negative; the overall input can be negative as well
-template Secp256k1PrimeReduce7Registers() {
-    signal input in[7];
+// template Secp256k1PrimeReduce7Registers() {
+//     signal input in[7];
 
+//     signal output out[4];
+//     var offset = (1<<32) + 977; // 33 bits
+    
+//     out[3] <== in[3];
+//     out[2] <== (offset * in[6]) + in[2];
+//     out[1] <== (offset * in[5]) + in[1];
+//     out[0] <== (offset * in[4]) + in[0];
+// }
+
+// 7 registers, 64 bits. registers can be overful
+// adds 7 bits to overflow, so don't input overful registers which are > 244 bits
+// input registers can also be negative; the overall input can be negative as well
+template Ec25519PrimeReduce7Registers() {
+    signal input in[7];
+    
     signal output out[4];
-    var offset = (1<<32) + 977; // 33 bits
+    var offset = 38; // 6 bits
     
     out[3] <== in[3];
     out[2] <== (offset * in[6]) + in[2];
