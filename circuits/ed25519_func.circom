@@ -1,29 +1,29 @@
 pragma circom 2.0.2;
 
 // from https://github.com/ethereum/py_ecc/blob/master/py_ecc/secp256k1/secp256k1.py
-function get_gx(n, k) {
-    assert(n == 86 && k == 3);
-    var ret[100];
-    if (n == 86 && k == 3) {
-        ret[0] = 17117865558768631194064792;
-        ret[1] = 12501176021340589225372855;
-        ret[2] = 9198697782662356105779718;
-    }
-    return ret;
-}
+// function get_gx(n, k) {
+//     assert(n == 86 && k == 3);
+//     var ret[100];
+//     if (n == 86 && k == 3) {
+//         ret[0] = 17117865558768631194064792;
+//         ret[1] = 12501176021340589225372855;
+//         ret[2] = 9198697782662356105779718;
+//     }
+//     return ret;
+// }
 
-function get_gy(n, k) {
-    assert(n == 86 && k == 3);
-    var ret[100];
-    if (n == 86 && k == 3) {
-        ret[0] = 6441780312434748884571320;
-        ret[1] = 57953919405111227542741658;
-        ret[2] = 5457536640262350763842127;
-    }
-    return ret;
-}
-// figure out prime p for 25519
-function get_secp256k1_prime(n, k) {
+// function get_gy(n, k) {
+//     assert(n == 86 && k == 3);
+//     var ret[100];
+//     if (n == 86 && k == 3) {
+//         ret[0] = 6441780312434748884571320;
+//         ret[1] = 57953919405111227542741658;
+//         ret[2] = 5457536640262350763842127;
+//     }
+//     return ret;
+// }
+
+function get_secp256k1_prime(n, k) { // TODO: change to correct prime
      assert((n == 86 && k == 3) || (n == 64 && k == 4));
      var ret[100];
      if (n == 86 && k == 3) {
