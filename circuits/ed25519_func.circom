@@ -182,7 +182,7 @@ function ed25519_double_func(n, k, x1, y1){
     var p[100] = get_ed25519_prime(n, k);
     var a_ell[100] = get_ed25519_a(n, k);
 
-    // lamb_numer = 3 * a[0] ** 2
+    // lamb_numer = 3 * a[0] ** 2 + a_ell
     var x1_sq[100] = prod_mod_p(n, k, a[0], a[0], p);
     var three[100];
     for (var i = 0; i < 100; i++) three[i] = i == 0 ? 3 : 0;
