@@ -21,7 +21,7 @@ include "bigint_func.circom";
 // 10 registers, 64 bits. registers can be overful
 // adds 13 bits to overflow, so don't input overful registers which are > 238 bits
 // input registers can also be negative; the overall input can be negative as well
-template Ec25519PrimeReduce10Registers() {
+template Ed25519PrimeReduce10Registers() {
     signal input in[10];
     
     signal output out[4];
@@ -52,7 +52,7 @@ template Ec25519PrimeReduce10Registers() {
 // 7 registers, 64 bits. registers can be overful
 // adds 7 bits to overflow, so don't input overful registers which are > 244 bits
 // input registers can also be negative; the overall input can be negative as well
-template Ec25519PrimeReduce7Registers() {
+template Ed25519PrimeReduce7Registers() {
     signal input in[7];
     
     signal output out[4];
@@ -90,7 +90,7 @@ template Ec25519PrimeReduce7Registers() {
 // }
 
 // check if in < p
-template CheckInRangeEc25519() {
+template CheckInRangeEd25519() {
     signal input in[4];
     component lessThan[2];
 
