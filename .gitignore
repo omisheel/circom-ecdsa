@@ -3,6 +3,8 @@ node_modules/
 pot*.ptau
 __pycache__
 .DS_Store
+yarn.lock
+package-lock.json
 
 *.swp
 *~

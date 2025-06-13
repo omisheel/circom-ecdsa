@@ -22,7 +22,7 @@ function get_gy(n, k) {
     }
     return ret;
 }
-
+// figure out prime p for 25519
 function get_secp256k1_prime(n, k) {
      assert((n == 86 && k == 3) || (n == 64 && k == 4));
      var ret[100];
@@ -38,6 +38,11 @@ function get_secp256k1_prime(n, k) {
          ret[3] = 18446744073709551615;
      }
      return ret;
+}
+
+//TODO
+function get_ec25519_prime(n, k) {
+
 }
 
 function get_secp256k1_order(n, k) {
@@ -57,6 +62,10 @@ function get_secp256k1_order(n, k) {
     return ret;
 }
 
+//TODO
+function get_ec25519_a(n, k) {
+    
+}
 // returns G * 2 ** 255
 // TODO check that this is correct...
 function get_dummy_point(n, k) {
@@ -87,7 +96,7 @@ function get_dummy_point(n, k) {
 // lamb = (b[1] - a[1]) / (b[0] - a[0]) % p
 // out[0] = lamb ** 2 - a[0] - b[0] % p
 // out[1] = lamb * (a[0] - out[0]) - a[1] % p
-function secp256k1_addunequal_func(n, k, x1, y1, x2, y2){
+function ec25519_addunequal_func(n, k, x1, y1, x2, y2){
     var a[2][100];
     var b[2][100];
 
@@ -100,7 +109,7 @@ function secp256k1_addunequal_func(n, k, x1, y1, x2, y2){
 
     var out[2][100];
 
-    var p[100] = get_secp256k1_prime(n, k);
+    var p[100] = get_ec25519_prime(n, k);
 
     // b[1] - a[1]
     var sub1_out[100] = long_sub_mod_p(n, k, b[1], a[1], p);
@@ -132,10 +141,10 @@ function secp256k1_addunequal_func(n, k, x1, y1, x2, y2){
 }
 
 // a[0], a[1] = x1, y1
-// lamb = (3 * a[0] ** 2) / (2 * a[1]) % p
+// lamb = (3 * a[0] ** 2 + a_ell) / (2 * a[1]) % p
 // out[0] = lamb ** 2 - (2 * a[0]) % p
 // out[1] = lamb * (a[0] - out[0]) - a[1] % p
-function secp256k1_double_func(n, k, x1, y1){
+function ec25519_double_func(n, k, x1, y1){
     var a[2][100];
     var b[2][100];
 
@@ -146,13 +155,16 @@ function secp256k1_double_func(n, k, x1, y1){
 
     var out[2][100];
 
-    var p[100] = get_secp256k1_prime(n, k);
+    var p[100] = get_ec25519_prime(n, k);
+    var a_ell[100] = get_ec25519_a(n, k);
 
     // lamb_numer = 3 * a[0] ** 2
     var x1_sq[100] = prod_mod_p(n, k, a[0], a[0], p);
     var three[100];
     for (var i = 0; i < 100; i++) three[i] = i == 0 ? 3 : 0;
-    var lamb_numer[100] = prod_mod_p(n, k, x1_sq, three, p);
+    var lamb_numer_temp[100] = prod_mod_p(n, k, x1_sq, three, p);
+    var lamb_numer[100];
+    for (var i = 0; i < 100; i++) { lamb_numer[i] = a_ell[i] + lamb_numer_temp[i]; }
 
     // lamb_denom = 2 * a[1]
     var two[100];
