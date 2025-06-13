@@ -42,7 +42,7 @@ pragma circom 2.0.2;
 
 //TODO
 function get_ec25519_prime(n, k) {
-    assert (n == 64 && k == 4);
+    assert(n == 64 && k == 4);
     var ret[100];
     if (n == 64 && k == 4) {
         ret[0] = 18446744073709551597;
@@ -53,25 +53,20 @@ function get_ec25519_prime(n, k) {
     return ret;
 }
 
-function get_secp256k1_order(n, k) {
-    assert((n == 86 && k == 3) || (n == 64 && k == 4));
+function get_ec25519_order(n, k) {
+    assert(n == 64 && k == 4);
     var ret[100];
-    if (n == 86 && k == 3) {
-        ret[0] = 10428087374290690730508609;
-        ret[1] = 77371252455330678278691517;
-        ret[2] = 19342813113834066795298815;
-    }
     if (n == 64 && k == 4) {
-        ret[0] = 13822214165235122497;
-        ret[1] = 13451932020343611451;
-        ret[2] = 18446744073709551614;
-        ret[3] = 18446744073709551615;
+        ret[0] = 6346243789798364141;
+        ret[1] = 1503914060200516822;
+        ret[2] = 0;
+        ret[3] = 1152921504606846976;
     }
     return ret;
 }
 
 function get_ec25519_a(n, k) {
-    assert (n == 64 && k == 4);
+    assert(n == 64 && k == 4);
     var ret[100];
     if (n == 64 && k == 4) {
         ret[0] = 12297829303526400324;
@@ -83,7 +78,7 @@ function get_ec25519_a(n, k) {
 }
 
 function get_ec25519_b(n, k) {
-    assert (n == 64 && k == 4);
+    assert(n == 64 && k == 4);
     var ret[100];
     if (n == 64 && k == 4) {
         ret[0] = 2741388824290576484;
