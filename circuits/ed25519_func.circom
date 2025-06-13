@@ -41,7 +41,7 @@ pragma circom 2.0.2;
 // }
 
 //TODO
-function get_ec25519_prime(n, k) {
+function get_ed25519_prime(n, k) {
     assert(n == 64 && k == 4);
     var ret[100];
     if (n == 64 && k == 4) {
@@ -53,7 +53,7 @@ function get_ec25519_prime(n, k) {
     return ret;
 }
 
-function get_ec25519_order(n, k) {
+function get_ed25519_order(n, k) {
     assert(n == 64 && k == 4);
     var ret[100];
     if (n == 64 && k == 4) {
@@ -65,7 +65,7 @@ function get_ec25519_order(n, k) {
     return ret;
 }
 
-function get_ec25519_a(n, k) {
+function get_ed25519_a(n, k) {
     assert(n == 64 && k == 4);
     var ret[100];
     if (n == 64 && k == 4) {
@@ -77,7 +77,7 @@ function get_ec25519_a(n, k) {
     return ret;
 }
 
-function get_ec25519_b(n, k) {
+function get_ed25519_b(n, k) {
     assert(n == 64 && k == 4);
     var ret[100];
     if (n == 64 && k == 4) {
@@ -120,7 +120,7 @@ function get_dummy_point(n, k) {
 // lamb = (b[1] - a[1]) / (b[0] - a[0]) % p
 // out[0] = lamb ** 2 - a[0] - b[0] % p
 // out[1] = lamb * (a[0] - out[0]) - a[1] % p
-function ec25519_addunequal_func(n, k, x1, y1, x2, y2){
+function ed25519_addunequal_func(n, k, x1, y1, x2, y2){
     var a[2][100];
     var b[2][100];
 
@@ -133,7 +133,7 @@ function ec25519_addunequal_func(n, k, x1, y1, x2, y2){
 
     var out[2][100];
 
-    var p[100] = get_ec25519_prime(n, k);
+    var p[100] = get_ed25519_prime(n, k);
 
     // b[1] - a[1]
     var sub1_out[100] = long_sub_mod_p(n, k, b[1], a[1], p);
@@ -168,7 +168,7 @@ function ec25519_addunequal_func(n, k, x1, y1, x2, y2){
 // lamb = (3 * a[0] ** 2 + a_ell) / (2 * a[1]) % p
 // out[0] = lamb ** 2 - (2 * a[0]) % p
 // out[1] = lamb * (a[0] - out[0]) - a[1] % p
-function ec25519_double_func(n, k, x1, y1){
+function ed25519_double_func(n, k, x1, y1){
     var a[2][100];
     var b[2][100];
 
@@ -179,8 +179,8 @@ function ec25519_double_func(n, k, x1, y1){
 
     var out[2][100];
 
-    var p[100] = get_ec25519_prime(n, k);
-    var a_ell[100] = get_ec25519_a(n, k);
+    var p[100] = get_ed25519_prime(n, k);
+    var a_ell[100] = get_ed25519_a(n, k);
 
     // lamb_numer = 3 * a[0] ** 2
     var x1_sq[100] = prod_mod_p(n, k, a[0], a[0], p);
