@@ -23,26 +23,34 @@ pragma circom 2.0.2;
 //     return ret;
 // }
 
-function get_secp256k1_prime(n, k) { // TODO: change to correct prime
-     assert((n == 86 && k == 3) || (n == 64 && k == 4));
-     var ret[100];
-     if (n == 86 && k == 3) {
-         ret[0] = 77371252455336262886226991;
-         ret[1] = 77371252455336267181195263;
-         ret[2] = 19342813113834066795298815;
-     }
-     if (n == 64 && k == 4) {
-         ret[0] = 18446744069414583343;
-         ret[1] = 18446744073709551615;
-         ret[2] = 18446744073709551615;
-         ret[3] = 18446744073709551615;
-     }
-     return ret;
-}
+// function get_secp256k1_prime(n, k) { // TODO: change to correct prime
+//      assert((n == 86 && k == 3) || (n == 64 && k == 4));
+//      var ret[100];
+//      if (n == 86 && k == 3) {
+//          ret[0] = 77371252455336262886226991;
+//          ret[1] = 77371252455336267181195263;
+//          ret[2] = 19342813113834066795298815;
+//      }
+//      if (n == 64 && k == 4) {
+//          ret[0] = 18446744069414583343;
+//          ret[1] = 18446744073709551615;
+//          ret[2] = 18446744073709551615;
+//          ret[3] = 18446744073709551615;
+//      }
+//      return ret;
+// }
 
 //TODO
 function get_ec25519_prime(n, k) {
-
+    assert (n == 64 && k == 4);
+    var ret[100];
+    if (n == 64 && k == 4) {
+        ret[0] = 18446744073709551597;
+        ret[1] = 18446744073709551615;
+        ret[2] = 18446744073709551615;
+        ret[3] = 9223372036854775807;
+    }
+    return ret;
 }
 
 function get_secp256k1_order(n, k) {
@@ -62,12 +70,33 @@ function get_secp256k1_order(n, k) {
     return ret;
 }
 
-//TODO
 function get_ec25519_a(n, k) {
-    
+    assert (n == 64 && k == 4);
+    var ret[100];
+    if (n == 64 && k == 4) {
+        ret[0] = 12297829303526400324;
+        ret[1] = 12297829382473034410;
+        ret[2] = 12297829382473034410;
+        ret[3] = 3074457345618258602;
+    }
+    return ret;
 }
+
+function get_ec25519_b(n, k) {
+    assert (n == 64 && k == 4);
+    var ret[100];
+    if (n == 64 && k == 4) {
+        ret[0] = 2741388824290576484;
+        ret[1] = 17080318586768103348;
+        ret[2] = 683212743470724133;
+        ret[3] = 8881765665119413741;
+    }
+    return ret;
+}
+
 // returns G * 2 ** 255
 // TODO check that this is correct...
+// TODO update for ed25519, as needed
 function get_dummy_point(n, k) {
     assert(n == 86 && k == 3 || n == 64 && k == 4);
     var ret[2][100]; // should be [2][k]

@@ -50,3 +50,20 @@ def to_chunks(x, n=64, k=4):
         x >>= n
     assert not x
     return ans
+
+def from_chunks(chunks, n=64, k=4):
+    ans = 0
+    for y in reversed(chunks):
+        ans <<= n
+        ans |= y
+    return ans
+
+def fr(x):
+    if type(x) is not list:
+        x = to_chunks(x)
+    print(f'''if (n == 64 && k == 4) {{
+        ret[0] = {x[0]};
+        ret[1] = {x[1]};
+        ret[2] = {x[2]};
+        ret[3] = {x[3]};
+    }}''')
