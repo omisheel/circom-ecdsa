@@ -127,16 +127,16 @@ template CheckInRangeEc25519() {
 // 64 bit registers with m-bit overflow
 // registers (and overall number) are potentially negative
 template CheckCubicModPIsZero(m) {
-    assert(m < 206); // since we deal with up to m+46 bit, potentially negative registers
+    assert(m < 238); // since we deal with up to m+13 bit, potentially negative registers
 
     signal input in[10];
 
-    // the secp256k1 field size, hardcoded
+    // the ec25519 field size, hardcoded
     signal p[4];
-    p[0] <== 18446744069414583343;
+    p[0] <== 18446744073709551615 - 19;
     p[1] <== 18446744073709551615;
     p[2] <== 18446744073709551615;
-    p[3] <== 18446744073709551615;
+    p[3] <== 18446744073709551615 \ 2;
 
     // now, we compute a positive number congruent to `in` expressible in 4 overflowed registers.
     // for this representation, individual registers are allowed to be negative, but the final number
@@ -148,9 +148,9 @@ template CheckCubicModPIsZero(m) {
     // since the registers of z are m + 43 bits, its max abs value is 2^(m+43 + 192) + 2^(m+43 + 128) + ...
     // so we add p * 2^(m-20), which is a bit under 2^(m+236) and larger than |z| < 2^(m+43+192) + eps
     signal reduced[4];
-    component secpReducer = Secp256k1PrimeReduce10Registers();
+    component ed25519Reducer = Secp256k1PrimeReduce10Registers();
     for (var i = 0; i < 10; i++) {
-        secpReducer.in[i] <== in[i];
+        ed25519Reducer.in[i] <== in[i];
     }
     signal multipleOfP[4];
     for (var i = 0; i < 4; i++) {
