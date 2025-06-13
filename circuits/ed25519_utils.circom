@@ -126,8 +126,8 @@ template CheckInRangeEd25519() {
 
 // 64 bit registers with m-bit overflow
 // registers (and overall number) are potentially negative
-template CheckCubicModPIsZero(m) {
-    assert(m < 238); // since we deal with up to m+13 bit, potentially negative registers
+template Ed25519CheckCubicModPIsZero(m) {
+    assert(m < 237); // since we deal with up to m+15 bit, potentially negative registers
 
     signal input in[10];
 
@@ -145,27 +145,27 @@ template CheckCubicModPIsZero(m) {
     // in a negative number overall, but preserves congruence mod p.
     // our intermediate result is z = secpReduce(in)
     // second, we add a big multiple of p to z, to ensure that our final result is positive. 
-    // since the registers of z are m + 43 bits, its max abs value is 2^(m+43 + 192) + 2^(m+43 + 128) + ...
-    // so we add p * 2^(m-20), which is a bit under 2^(m+236) and larger than |z| < 2^(m+43+192) + eps
+    // since the registers of z are m + 13 bits, its max abs value is 2^(m+13 + 192) + 2^(m+13 + 128) + ...
+    // so we add p * 2^(m-49), which is a bit under 2^(m+206) and larger than |z| < 2^(m+43+192) + eps
     signal reduced[4];
-    component ed25519Reducer = Secp256k1PrimeReduce10Registers();
+    component ed25519Reducer = Ed25519PrimeReduce10Registers();
     for (var i = 0; i < 10; i++) {
         ed25519Reducer.in[i] <== in[i];
     }
     signal multipleOfP[4];
     for (var i = 0; i < 4; i++) {
-        multipleOfP[i] <== p[i] * (1 << (m-20)); // m - 20 + 64 = m+44 bits
+        multipleOfP[i] <== p[i] * (1 << (m-49)); // m - 49 + 64 = m+15 bits
     }
     for (var i = 0; i < 4; i++) {
-        reduced[i] <== secpReducer.out[i] + multipleOfP[i]; // max(m+43, m+44) + 1 = m+45 bits
+        reduced[i] <== secpReducer.out[i] + multipleOfP[i]; // max(m+13, m+15) + 1 = m+15 bits
     }
 
     // now we compute the quotient q, which serves as a witness. we can do simple bounding to show
     // that the the expected quotient is always expressible in 3 registers (i.e. < 2^192)
-    // so long as m < 211
+    // so long as m < 231
     signal q[3];
 
-    var temp[100] = getProperRepresentation(m + 45, 64, 4, reduced);
+    var temp[100] = getProperRepresentation(m + 15, 64, 4, reduced);
     var proper[8];
     for (var i = 0; i < 8; i++) {
         proper[i] = temp[i];
@@ -197,10 +197,10 @@ template CheckCubicModPIsZero(m) {
     }
 
     // finally, check that qpProd == reduced
-    component zeroCheck = CheckCarryToZero(64, m + 46, 6);
+    component zeroCheck = CheckCarryToZero(64, m + 15, 6);
     for (var i = 0; i < 6; i++) {
         if (i < 4) { // reduced only has 4 registers
-            zeroCheck.in[i] <== qpProd[i] - reduced[i]; // (m + 45) + 1 bits
+            zeroCheck.in[i] <== qpProd[i] - reduced[i]; // (m + 15) + 1 bits
         } else {
             zeroCheck.in[i] <== qpProd[i];
         }
