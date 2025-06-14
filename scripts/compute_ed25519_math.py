@@ -2,17 +2,22 @@ from sympy.ntheory import sqrt_mod
 
 P = (1 << 255) - 19
 Q = (1 << 252) + 27742317777372353535851937790883648493
+assert Q == (1 << 252) + 0x14def9dea2f79cd65812631a5cf5d3ed
 
 d = (-121665 * pow(121666, -1, P)) % P # twisted edwards form coefficient d
 
 A = 486662 # montgomery form coefficient A
 ed_to_mont_coef = sqrt_mod(-A - 2, P)
+# assert ed_to_mont_coef == 6853475219497561581579357271197624642482790079785650197046958215289687604742
 
 a = (3 - A * A) * pow(3, -1, P) % P  # weierstrass form coefficient a
 b = (2 * A * A * A - 9 * A) * pow(27, -1, P) % P  # weierstrass form coefficient b
 
 gx_ed = 0x216936D3CD6E53FEC0A4E231FDD6DC5C692CC7609525A7B2C9562D608F25D51A
 gy_ed = 0x6666666666666666666666666666666666666666666666666666666666666658
+
+assert gx_ed == 15112221349535400772501151409588531511454012693041857206046113283949847762202
+assert gy_ed == 46316835694926478169428394003475163141307993866256225615783033603165251855960
 
 def verify_ed(x, y):
     """Verify if the point (x, y) in twisted edwards form is on the ed25519 curve."""
@@ -52,7 +57,13 @@ def ed_to_weier(x, y):
     # assert verify_weier(x_weier, y_weier)
     return x_weier, y_weier
 
+gx_mont, gy_mont = ed_to_mont(gx_ed, gy_ed)
+if gy_mont != 14781619447589544791020593568409986887264606134616475288964881837755586237401:
+    ed_to_mont_coef = - ed_to_mont_coef
+gx_mont, gy_mont = ed_to_mont(gx_ed, gy_ed)
+assert gy_mont == 14781619447589544791020593568409986887264606134616475288964881837755586237401
 gx, gy = ed_to_weier(gx_ed, gy_ed)
+gp = [gx, gy]
 
 def to_chunks(x, n=64, k=4):
     ans = []
@@ -78,3 +89,98 @@ def fr(x):
         ret[2] = {x[2]};
         ret[3] = {x[3]};
     }}''')
+
+def ec_add(p1, p2):
+    if p1 == p2:
+        return ec_double(p1)
+    x1, y1 = p1
+    x2, y2 = p2
+    lamb = ((y2 - y1) * pow(x2 - x1, -1, P)) % P
+    x3 = (lamb * lamb - x1 - x2) % P
+    y3 = (lamb * (x1 - x3) - y1) % P
+    assert verify_weier(x3, y3), (x3, y3)
+    return [x3, y3]
+
+def ec_double(p):
+    x, y = p
+    assert y != 0, (x, y)
+    lamb = ((3 * x * x + a) * pow(2 * y, -1, P)) % P
+    x3 = (lamb * lamb - 2 * x) % P
+    y3 = (lamb * (x - x3) - y) % P
+    assert verify_weier(x3, y3), (x3, y3)
+    return [x3, y3]
+
+def gen_powers():
+    stride = 8
+    num_strides = 32
+    powers = [[[0, 0] for _ in range(1 << stride)] for _ in range(num_strides)]
+    # powers = [[[[0, 0, 0, 0], [0, 0, 0, 0]] for _ in range(256)] for _ in range(32)]
+
+    # powers[j][i] = [j * 2**(stride * i) * g]
+    for i in range(num_strides):
+        for j in range(1, 1 << stride):
+            if i == 0 and j == 1:
+                powers[i][j] = [gx, gy]
+            elif j == 1:
+                p = powers[i - 1][1]
+                for _ in range(stride):
+                    # assert p != [0, 0], (i, j, _)
+                    p = ec_double(p)
+                powers[i][j] = p
+            else:
+                powers[i][j] = ec_add(powers[i][1], powers[i][j - 1])
+
+    for i in range(num_strides):
+        for j in range(1, 1 << stride):
+            for k in range(2):
+                powers[i][j][k] = to_chunks(powers[i][j][k])
+
+    return powers
+
+def generate_ed25519_powers_circom():
+    """Generate the Ed25519 powers table in Circom format."""
+    powers = gen_powers()
+    
+    with open('../circuits/ed25519_g_pow_stride8_table.circom', 'w') as f:
+        f.write('pragma circom 2.0.2;\n\n')
+        f.write('function get_ed25519_g_pow_stride8_table(n, k) {\n')
+        f.write('    assert(n == 64 && k == 4);\n')
+        f.write('    var powers[32][256][2][4];\n\n')
+        
+        for i in range(32):
+            for j in range(256):
+                for coord in range(2):  # 0 for x, 1 for y
+                    if j == 0:
+                        # Point at infinity
+                        for chunk in range(4):
+                            f.write(f'    powers[{i}][{j}][{coord}][{chunk}] = 0;\n')
+                    else:
+                        for chunk in range(4):
+                            value = powers[i][j][coord][chunk]
+                            f.write(f'    powers[{i}][{j}][{coord}][{chunk}] = {value};\n')
+                
+                if j < 255 or i < 31:  # Add blank line between points except at the very end
+                    f.write('\n')
+        
+        f.write('    return powers;\n')
+        f.write('}\n')
+    
+    print("Generated ../circuits/ed25519_g_pow_stride8_table.circom")
+
+def bin_exp(a, n, mul, one=None):
+    '''computes a^n, where multiplication operation is defined by 
+    mul and one is the identity element. n must be nonnegative'''
+    ans = one
+    while n:
+        if n & 1:
+            if ans is None:
+                ans = a
+            else:
+                ans = mul(ans, a)
+        a = mul(a, a)
+        n >>= 1
+    return ans
+
+def scalar_mul(scalar, p):
+    """Computes scalar * p using double-and-add algorithm."""
+    return bin_exp(p, scalar, ec_add)

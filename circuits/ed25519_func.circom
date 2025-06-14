@@ -40,7 +40,6 @@ pragma circom 2.0.2;
 //      return ret;
 // }
 
-//TODO
 function get_ed25519_prime(n, k) {
     assert(n == 64 && k == 4);
     var ret[100];
