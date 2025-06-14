@@ -6,7 +6,7 @@ include "../node_modules/circomlib/circuits/multiplexer.circom";
 include "bigint.circom";
 include "ed25519.circom";
 include "bigint_func.circom";
-include "ecdsa_func.circom";
+include "ecdsa_g_pow_stride8_table.circom";
 include "ed25519_func.circom";
 
 // keys are encoded as (x, y) pairs with each coordinate being
@@ -25,7 +25,7 @@ template ECDSAPrivToPub(n, k) {
     var num_strides = div_ceil(n * k, stride);
     // power[i][j] contains: [j * (1 << stride * i) * G] for 1 <= j < (1 << stride)
     var powers[num_strides][2 ** stride][2][k];
-    powers = get_g_pow_stride8_table(n, k);
+    powers = get_ed25519_g_pow_stride8_table(n, k);
 
     // contains a dummy point G * 2 ** 255 to stand in when we are adding 0
     // this point is sometimes an input into AddUnequal, so it must be guaranteed
