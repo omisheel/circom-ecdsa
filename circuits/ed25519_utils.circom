@@ -133,7 +133,7 @@ template Ed25519CheckCubicModPIsZero(m) {
 
     // the ec25519 field size, hardcoded
     signal p[4];
-    var p_temp[100] = get_ec25519_prime(64, 4);
+    var p_temp[100] = get_ed25519_prime(64, 4);
     for (var i = 0; i < 4; i++) {
         p[i] <== p_temp[i];
     }
@@ -157,7 +157,7 @@ template Ed25519CheckCubicModPIsZero(m) {
         multipleOfP[i] <== p[i] * (1 << (m-49)); // m - 49 + 64 = m+15 bits
     }
     for (var i = 0; i < 4; i++) {
-        reduced[i] <== secpReducer.out[i] + multipleOfP[i]; // max(m+13, m+15) + 1 = m+16 bits
+        reduced[i] <== ed25519Reducer.out[i] + multipleOfP[i]; // max(m+13, m+15) + 1 = m+16 bits
     }
 
     // now we compute the quotient q, which serves as a witness. we can do simple bounding to show
@@ -216,7 +216,7 @@ template Ed25519CheckQuadraticModPIsZero(m) {
 
     // the ec25519 field size
     signal p[4];
-    var p_temp[100] = get_ec25519_prime(64, 4);
+    var p_temp[100] = get_ed25519_prime(64, 4);
     for (var i = 0; i < 4; i++) {
         p[i] <== p_temp[i];
     }
@@ -240,7 +240,7 @@ template Ed25519CheckQuadraticModPIsZero(m) {
         multipleOfP[i] <== p[i] * (1 << (m-55)); // m - 55 + 64 = m + 9 bits
     }
     for (var i = 0; i < 4; i++) {
-        reduced[i] <== secpReducer.out[i] + multipleOfP[i]; // max(m+7, m+9) + 1 = m+10 bits
+        reduced[i] <== ed25519Reducer.out[i] + multipleOfP[i]; // max(m+7, m+9) + 1 = m+10 bits
     }
 
     // now we compute the quotient q, which serves as a witness. we can do simple bounding to show

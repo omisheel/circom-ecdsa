@@ -4,10 +4,10 @@ include "../node_modules/circomlib/circuits/comparators.circom";
 include "../node_modules/circomlib/circuits/multiplexer.circom";
 
 include "bigint.circom";
-include "secp256k1.circom";
+include "ed25519.circom";
 include "bigint_func.circom";
 include "ecdsa_func.circom";
-include "secp256k1_func.circom";
+include "ed25519_func.circom";
 
 // keys are encoded as (x, y) pairs with each coordinate being
 // encoded with k registers of n bits each
@@ -96,7 +96,7 @@ template ECDSAPrivToPub(n, k) {
     signal intermed1[num_strides - 1][2][k];
     signal intermed2[num_strides - 1][2][k];
     for (var i = 1; i < num_strides; i++) {
-        adders[i - 1] = Secp256k1AddUnequal(n, k);
+        adders[i - 1] = Ed25519AddUnequal(n, k);
         for (var idx = 0; idx < k; idx++) {
             for (var l = 0; l < 2; l++) {
                 adders[i - 1].a[l][idx] <== partial[i - 1][l][idx];
@@ -137,8 +137,8 @@ template ECDSAVerifyNoPubkeyCheck(n, k) {
 
     signal output result;
 
-    var p[100] = get_secp256k1_prime(n, k);
-    var order[100] = get_secp256k1_order(n, k);
+    var p[100] = get_ed25519_prime(n, k);
+    var order[100] = get_ed25519_order(n, k);
 
     // compute multiplicative inverse of s mod n
     var sinv_comp[100] = mod_inv(n, k, s, order);
@@ -187,7 +187,7 @@ template ECDSAVerifyNoPubkeyCheck(n, k) {
     }
 
     // compute (r * sinv) * pubkey
-    component pubkey_mult = Secp256k1ScalarMult(n, k);
+    component pubkey_mult = Ed25519ScalarMult(n, k);
     for (var idx = 0; idx < k; idx++) {
         pubkey_mult.scalar[idx] <== pubkey_coeff.out[idx];
         pubkey_mult.point[0][idx] <== pubkey[0][idx];
@@ -195,7 +195,7 @@ template ECDSAVerifyNoPubkeyCheck(n, k) {
     }
 
     // compute (h * sinv) * G + (r * sinv) * pubkey
-    component sum_res = Secp256k1AddUnequal(n, k);
+    component sum_res = Ed25519AddUnequal(n, k);
     for (var idx = 0; idx < k; idx++) {
         sum_res.a[0][idx] <== g_mult.pubkey[0][idx];
         sum_res.a[1][idx] <== g_mult.pubkey[1][idx];

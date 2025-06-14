@@ -176,7 +176,7 @@ template Ed25519PointOnTangent() {
     for (var i = 0; i < 4; i++) x12x3Comp.b[i] <== x3[i];
     for (var i = 0; i < 10; i++) x12x3[i] <== x12x3Comp.a2b1[i];
 
-    var a = get_ed25519_a(64, 4);
+    var a[100] = get_ed25519_a(64, 4);
     signal ax3[7]; // 130 bits
     component ax3Comp = BigMultNoCarry(64, 64, 64, 4, 4);
     for (var i = 0; i < 4; i++) ax3Comp.a[i] <== a[i];
@@ -202,8 +202,8 @@ template Ed25519PointOnTangent() {
 template Ed25519PointOnCurve() {
     signal input x[4];
     signal input y[4];
-    var a = get_ed25519_a(64, 4);
-    var b = get_ed25519_b(64, 4);
+    var a[100] = get_ed25519_a(64, 4);
+    var b[100] = get_ed25519_b(64, 4);
 
     // first, we compute representations of x^3, y^2, ax.
     // these representations have overflowed, nonnegative registers
