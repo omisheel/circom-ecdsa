@@ -302,20 +302,23 @@ template GroupVerify(size, n, k) {
     signal input R[2][k];
     signal input s[k];
     signal input A[size][2][k];
-    signal input message[k];
+    signal input message[size][k];
     signal input index;
 
-    component muxAx[size] = Multiplexer(k, size);
-    component muxAy[size] = Multiplexer(k, size);
+    component muxAx = Multiplexer(k, size);
+    component muxAy = Multiplexer(k, size);
+    component mux_m = Multiplexer(k, size);
 
     for (var i = 0; i < size; i++) {
         for (var j = 0; j < k; j++) {
-            muxAx[i].inp[j] <== A[i][0][j];
-            muxAy[i].inp[j] <== A[i][1][j];
+            muxAx.inp[i][j] <== A[i][0][j];
+            muxAy.inp[i][j] <== A[i][1][j];
+            mux_m.inp[i][j] <== message[i][j];
         }
     }
     muxAx.sel <== index;
     muxAy.sel <== index;
+    mux_m.sel <== index;
 
     signal realA[2][k];
     for (var j = 0; j < k; j++) {
@@ -331,7 +334,7 @@ template GroupVerify(size, n, k) {
         verify.R[1][j] <== R[1][j];
     }
     for (var j = 0; j < k; j++) {
-        verify.m[j] <== message[j];
+        verify.m[j] <== mux_m.out[j];
     }
     for (var j = 0; j < k; j++) {
         verify.A[0][j] <== realA[0][j];
