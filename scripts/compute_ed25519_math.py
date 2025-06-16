@@ -184,3 +184,27 @@ def bin_exp(a, n, mul, one=None):
 def scalar_mul(scalar, p):
     """Computes scalar * p using double-and-add algorithm."""
     return bin_exp(p, scalar, ec_add)
+
+def tcs(x):
+    if type(x) is list:
+        return list(map(tcs, x))
+    return list(map(str, to_chunks(x)))
+
+def gen_test_case(r, m, a):
+    s = (r + m * a) % Q
+    R = scalar_mul(r, gp)
+    A = scalar_mul(a, gp)
+    assert scalar_mul(s, gp) == ec_add(R, scalar_mul(m, A))
+    return {
+        's': tcs(s),
+        'R': tcs(R),
+        'm': tcs(m),
+        'A': tcs(A)
+    }
+
+def gen_rand_test_case():
+    import random
+    r = random.randint(1, Q - 1)
+    m = random.randint(1, Q - 1)
+    a = random.randint(1, Q - 1)
+    return gen_test_case(r, m, a)
