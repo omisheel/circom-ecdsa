@@ -225,6 +225,81 @@ template ECDSAVerifyNoPubkeyCheck(n, k) {
     result <== res_comp.out;
 }
 
+// s, R, m, A
+// where m is message hash, A is public key.
+// ignoring cofactor
+// points encoded in short weierstrass form (NOT edwards)
+// s * G = R + m * A
+template ed25519SSHVerifyNoPubkeyCheck(n, k) {
+    assert(k >= 2);
+    assert(k <= 100);
+
+    signal input s[k];
+    signal input R[2][k];
+    signal input m[k];
+    signal input A[2][k];
+
+
+    // need basepoint G
+    var G[2][100] = get_ed25519_base_point(n, k);
+    var order[100] = get_ed25519_order(n, k);
+
+    // check if s < order??
+
+    component scalarMult[2];
+    // s * G
+    scalarMult[0] = Ed25519ScalarMult(n, k);
+    for (var i = 0; i < k; i++) scalarMult[0].scalar[i] <== s[i];
+    for (var i = 0; i < 2; i++) {
+        for (var j = 0; j < k; j++) {
+            scalarMult[0].point[i][j] <== G[i][j];
+        }
+    }
+    // m * A
+    scalarMult[1] = Ed25519ScalarMult(n, k);
+    for (var i = 0; i < k; i++) scalarMult[1].scalar[i] <== m[i];
+    for (var i = 0; i < 2; i++) {
+        for (var j = 0; j < k; j++) {
+            scalarMult[1].point[i][j] <== A[i][j];
+        }
+    }
+    // m * A + R
+    component sum_res = Ed25519AddUnequal(n, k);
+    for (var i = 0; i < k; i++) {
+        sum_res.a[0][i] <== scalarMult[1].out[0][i];
+        sum_res.a[1][i] <== scalarMult[1].out[1][i];
+        sum_res.b[0][i] <== R[0][i];
+        sum_res.b[1][i] <== R[1][i];
+    }
+    // check if scalarMult[0] == sum_res
+    // first compare x coordinates
+    component compare[k];
+    signal num_equal[k - 1];
+    for (var idx = 0; idx < k; idx++) {
+        compare[idx] = IsEqual();
+        compare[idx].in[0] <== scalarMult[0].out[0][idx];
+        compare[idx].in[1] <== sum_res.out[0][idx];
+
+        if (idx > 0) {
+            if (idx == 1) {
+                num_equal[idx - 1] <== compare[0].out + compare[1].out;
+            } else {
+                num_equal[idx - 1] <== num_equal[idx - 2] + compare[idx].out;
+            }
+        }
+    }
+    // then compare last register of y coordinates
+    component y_comp = IsEqual();
+    y_comp.in[0] <== scalarMult[0].out[1][0];
+    y_comp.in[1] <== sum_res.out[1][0];
+
+    component res_comp = IsEqual();
+    res_comp.in[0] <== k + 1; // k + 1 because we have k - 1 equalities for x and one for y
+    res_comp.in[1] <== num_equal[k - 2] + y_comp.out;
+    signal output result;
+    result <== res_comp.out;
+}
+
 // TODO: implement ECDSA extended verify
 // r, s, and msghash have coordinates
 // encoded with k registers of n bits each
