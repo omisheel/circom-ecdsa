@@ -295,6 +295,52 @@ template ed25519SSHVerifyNoPubkeyCheck(n, k) {
     result <== res_comp.out;
 }
 
+// signature (R, s)
+// A[size] is the set of public keys
+// message is the message hash
+template GroupVerify(size, n, k) {
+    signal input R[2][k];
+    signal input s[k];
+    signal input A[size][2][k];
+    signal input message[k];
+    signal input index;
+
+    component muxAx[size] = Multiplexer(k, size);
+    component muxAy[size] = Multiplexer(k, size);
+
+    for (var i = 0; i < size; i++) {
+        for (var j = 0; j < k; j++) {
+            muxAx[i].inp[j] <== A[i][0][j];
+            muxAy[i].inp[j] <== A[i][1][j];
+        }
+    }
+    muxAx.sel <== index;
+    muxAy.sel <== index;
+
+    signal realA[2][k];
+    for (var j = 0; j < k; j++) {
+        realA[0][j] <== muxAx.out[j];
+        realA[1][j] <== muxAy.out[j];
+    }
+    component verify = ed25519SSHVerifyNoPubkeyCheck(n, k);
+    for (var j = 0; j < k; j++) {
+        verify.s[j] <== s[j];
+    }
+    for (var j = 0; j < k; j++) {
+        verify.R[0][j] <== R[0][j];
+        verify.R[1][j] <== R[1][j];
+    }
+    for (var j = 0; j < k; j++) {
+        verify.m[j] <== message[j];
+    }
+    for (var j = 0; j < k; j++) {
+        verify.A[0][j] <== realA[0][j];
+        verify.A[1][j] <== realA[1][j];
+    }
+    1 === verify.out;
+}
+
+
 // TODO: implement ECDSA extended verify
 // r, s, and msghash have coordinates
 // encoded with k registers of n bits each
