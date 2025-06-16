@@ -6,7 +6,7 @@ include "../node_modules/circomlib/circuits/multiplexer.circom";
 include "bigint.circom";
 include "ed25519.circom";
 include "bigint_func.circom";
-include "ecdsa_g_pow_stride8_table.circom";
+include "ed25519_g_pow_stride8_table.circom";
 include "ed25519_func.circom";
 
 // keys are encoded as (x, y) pairs with each coordinate being
@@ -251,7 +251,7 @@ template ed25519SSHVerifyNoPubkeyCheck(n, k) {
     }
     
     // m * A
-    component scalarMult = Ed25519ScalarMult(n, k);;
+    component scalarMult = Ed25519ScalarMult(n, k);
     for (var i = 0; i < k; i++) scalarMult.scalar[i] <== m[i];
     for (var i = 0; i < 2; i++) {
         for (var j = 0; j < k; j++) {
@@ -337,7 +337,7 @@ template GroupVerify(size, n, k) {
         verify.A[0][j] <== realA[0][j];
         verify.A[1][j] <== realA[1][j];
     }
-    1 === verify.out;
+    1 === verify.result;
 }
 
 
