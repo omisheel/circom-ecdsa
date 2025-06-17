@@ -470,6 +470,12 @@ template Ed25519ScalarMultWindow(n, k) {
             }
         }
     }
+    for (var d = 1; d < 8; d++) {
+        for (var i = 0; i < k; i++) { // set window[d] = d * point
+            windowvalues[8 + d][0][i] <== windowvalues[8 - d][0][i];
+            windowvalues[8 + d][1][i] <== -windowvalues[8 - d][1][i];
+        }
+    }
 
     // for (var i = 0; i < k; i++) {
     //     windowvalues[1][0][i] <== point[0][i];
