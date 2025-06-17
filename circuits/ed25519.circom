@@ -528,7 +528,7 @@ template Ed25519ScalarMultWindow(n, k) {
 
         if (i < 63) {
             // do *16
-            for (var j = 0; j < 3; j++) {
+            for (var j = 0; j < 4; j++) {
                 doubleStep[i][j] = Ed25519Double(n, k);
                 for (var l = 0; l < k; l++) {
                     doubleStep[i][j].in[0][l] <== (j == 0) ? accum[i + 1][0][l] : doubleStep[i][j - 1].out[0][l];
@@ -538,17 +538,17 @@ template Ed25519ScalarMultWindow(n, k) {
 
             partial[i] = Ed25519AddUnequal(n, k);
             for (var j = 0; j < k; j++) {
-                partial[i].a[0][j] <== doubleStep[i][2].out[0][j];
-                partial[i].a[1][j] <== doubleStep[i][2].out[1][j];
+                partial[i].a[0][j] <== doubleStep[i][3].out[0][j];
+                partial[i].a[1][j] <== doubleStep[i][3].out[1][j];
                 partial[i].b[0][j] <== mux1[i].out[j];
                 partial[i].b[1][j] <== mux2[i].out[j];
             }
             
             for (var j = 0; j < k; j++) {
                 mux3[i].inp[0][j] <== partial[i].out[0][j];
-                mux3[i].inp[1][j] <== doubleStep[i][2].out[0][j];
+                mux3[i].inp[1][j] <== doubleStep[i][3].out[0][j];
                 mux4[i].inp[0][j] <== partial[i].out[1][j];
-                mux4[i].inp[1][j] <== doubleStep[i][2].out[1][j];
+                mux4[i].inp[1][j] <== doubleStep[i][3].out[1][j];
             }
             for (var j = 0; j < k; j++) {
                 accum[i][0][j] <== mux3[i].out[j];
