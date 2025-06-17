@@ -33,7 +33,7 @@ template Ed25519PrimeReduce7Registers() {
     out[0] <== (offset * in[4]) + in[0];
 }
 
-// check if in < p
+// verifies that in is in proper representation and satisfies 0 <= in < p
 template CheckInRangeEd25519() {
     signal input in[4];
     component lessThan[2];
