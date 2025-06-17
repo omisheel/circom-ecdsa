@@ -435,6 +435,18 @@ template Ed25519ScalarMultWindow(n, k) {
     signal input scalar[k];
     signal input point[2][k];
 
+    var order[k] = get_ed25519_order(64, 4); 
+
+    signal modScalar[k];
+    component adddd = BigAdd(n, k);
+    for (var i = 0; i < k; i++) {
+        adddd.a[i] <== scalar[i];
+        adddd.b[i] <== order[i];
+    }
+    for (var i = 0; i < k; i++) {
+        modScalar[i] <== adddd.out[i];
+    }
+
     signal output out[2][k];
     //calculate window
     signal windowvalues[16][2][k];
@@ -509,7 +521,7 @@ template Ed25519ScalarMultWindow(n, k) {
     component base16Comp = Base16(n, k);
 
     for (var i = 0; i < k; i++) {
-        base16Comp.in[i] <== scalar[i];
+        base16Comp.in[i] <== modScalar[i];
     } 
     
     signal accum[64][2][k];
