@@ -443,29 +443,30 @@ template Ed25519ScalarMultWindow(n, k) {
         windowvalues[7][0][i] <== point[0][i];
         windowvalues[7][1][i] <== -point[1][i];
     }
-    component comp[7];
+    component add1[4];
+    component add2[3];
     for (var d = 2; d <= 8; d++) { // calculate -d * point for d = 2..8
         if (d % 2 == 0) {
-            comp[d - 2] = Ed25519Double(n, k);
+            add1[d \ 2 - 1] = Ed25519Double(n, k);
             for (var i = 0; i < k; i++) {
-                comp[d - 2].in[0][i] <== windowvalues[8 - (d / 2)][0][i];
-                comp[d - 2].in[1][i] <== windowvalues[8 - (d / 2)][1][i];
+                add1[d \ 2 - 1].in[0][i] <== windowvalues[8 - (d / 2)][0][i];
+                add1[d \ 2 - 1].in[1][i] <== windowvalues[8 - (d / 2)][1][i];
             }
             for (var i = 0; i < k; i++) {
-                windowvalues[8 - d][0][i] <== comp[d - 2].out[0][i];
-                windowvalues[8 - d][1][i] <== comp[d - 2].out[1][i];
+                windowvalues[8 - d][0][i] <== add1[d \ 2 - 1].out[0][i];
+                windowvalues[8 - d][1][i] <== add1[d \ 2 - 1].out[1][i];
             }
         } else {
-            comp[d - 2] = Ed25519AddUnequal(n, k);
+            add2[d \ 2 - 1] = Ed25519AddUnequal(n, k);
             for (var i = 0; i < k; i++) {
-                comp[d - 2].a[0][i] <== windowvalues[8 - (d - 1)][0][i];
-                comp[d - 2].a[1][i] <== windowvalues[8 - (d - 1)][1][i];
-                comp[d - 2].b[0][i] <== windowvalues[7][0][i];
-                comp[d - 2].b[1][i] <== windowvalues[7][1][i];
+                add2[d \ 2 - 1].a[0][i] <== windowvalues[8 - (d - 1)][0][i];
+                add2[d \ 2 - 1].a[1][i] <== windowvalues[8 - (d - 1)][1][i];
+                add2[d \ 2 - 1].b[0][i] <== windowvalues[7][0][i];
+                add2[d \ 2 - 1].b[1][i] <== windowvalues[7][1][i];
             }
             for (var i = 0; i < k; i++) {
-                windowvalues[8 - d][0][i] <== comp[d - 2].out[0][i];
-                windowvalues[8 - d][1][i] <== comp[d - 2].out[1][i];
+                windowvalues[8 - d][0][i] <== add2[d \ 2 - 1].out[0][i];
+                windowvalues[8 - d][1][i] <== add2[d \ 2 - 1].out[1][i];
             }
         }
     }
