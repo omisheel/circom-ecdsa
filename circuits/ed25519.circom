@@ -503,21 +503,21 @@ template Ed25519ScalarMultWindow(n, k) {
     component doubleStep[64][4];
     for (var i = 63; i >= 0; i--) {
         mux1[i] = Multiplexer(16, k);
-        mux1[i].select <== base16Comp.out[i] + 8;
+        mux1[i].sel <== base16Comp.out[i] + 8;
         mux2[i] = Multiplexer(16, k);
-        mux2[i].select <== base16Comp.out[i] + 8;
+        mux2[i].sel <== base16Comp.out[i] + 8;
         digitZeroCheck[i] = IsEqual();
         digitZeroCheck[i].in[0] <== base16Comp.out[i];
         digitZeroCheck[i].in[1] <== 0;
         mux3[i] = Multiplexer(2, k);
-        mux3[i].select <== digitZeroCheck[i].out;
+        mux3[i].sel <== digitZeroCheck[i].out;
         mux4[i] = Multiplexer(2, k);
-        mux4[i].select <== digitZeroCheck[i].out;
+        mux4[i].sel <== digitZeroCheck[i].out;
 
         for (var j = 0; j < k; j++) {
             for (var l = 0; l < 16; l++) {
-                mux1[i].in[l][j] <== windowvalues[l][0][j];
-                mux2[i].in[l][j] <== windowvalues[l][1][j];
+                mux1[i].inp[l][j] <== windowvalues[l][0][j];
+                mux2[i].inp[l][j] <== windowvalues[l][1][j];
             }
         }
 
@@ -540,10 +540,10 @@ template Ed25519ScalarMultWindow(n, k) {
             }
             
             for (var j = 0; j < k; j++) {
-                mux3[i].in[0][j] <== partial[i].out[0][j];
-                mux3[i].in[1][j] <== doubleStep[i][2].out[0][j];
-                mux4[i].in[0][j] <== partial[i].out[1][j];
-                mux4[i].in[1][j] <== doubleStep[i][2].out[1][j];
+                mux3[i].inp[0][j] <== partial[i].out[0][j];
+                mux3[i].inp[1][j] <== doubleStep[i][2].out[0][j];
+                mux4[i].inp[0][j] <== partial[i].out[1][j];
+                mux4[i].inp[1][j] <== doubleStep[i][2].out[1][j];
             }
             for (var j = 0; j < k; j++) {
                 accum[i][0][j] <== mux3[i].out[j];
