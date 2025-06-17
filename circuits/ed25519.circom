@@ -439,9 +439,11 @@ template Ed25519ScalarMultWindow(n, k) {
     //calculate window
     signal windowvalues[16][2][k];
     //window[8 + d] is d * point
-    for (var i = 0; i < k; i++) { // set window[7] = -point
+    for (var i = 0; i < k; i++) { // set window[7] = -point and window[8] = point (as a dummy value)
         windowvalues[7][0][i] <== point[0][i];
         windowvalues[7][1][i] <== -point[1][i];
+        windowvalues[8][0][i] <== point[0][i];
+        windowvalues[8][1][i] <== point[1][i];
     }
     component add1[4];
     component add2[3];
@@ -476,6 +478,8 @@ template Ed25519ScalarMultWindow(n, k) {
             windowvalues[8 + d][1][i] <== -windowvalues[8 - d][1][i];
         }
     }
+
+
 
     // for (var i = 0; i < k; i++) {
     //     windowvalues[1][0][i] <== point[0][i];
