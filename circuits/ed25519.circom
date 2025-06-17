@@ -497,6 +497,10 @@ template Ed25519ScalarMultWindow(n, k) {
     component mux3[64];
     component mux4[64];
     component base16Comp = Base16(n, k);
+
+    for (var i = 0; i < k; i++) {
+        base16Comp.in[i] <== scalar[i];
+    } 
     
     signal accum[64][2][k];
     component digitZeroCheck[64];
