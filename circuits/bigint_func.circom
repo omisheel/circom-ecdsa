@@ -2,7 +2,6 @@ pragma circom 2.0.2;
 
 function isNegative(x) {
     // half babyjubjub field size
-    // return x > 10944121435919637611123202872628637544274182200208017171849102093287904247808 ? 1 : 0;
     return x < 0 ? 1 : 0;
 }
 
@@ -446,7 +445,6 @@ function prod_mod_p(n, k, a, b, p){
 function to_base16(n, k, in) {
     assert(n == 64 && k == 4);
     var out[2][100]; // out[0] is the base 16 digits, out[1] is the carry
-    // var carry = 0;
     for (var i = 0; i < k; i++) {
         var x = in[i];
         if (i > 0) {

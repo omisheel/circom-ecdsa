@@ -1,28 +1,6 @@
 pragma circom 2.0.2;
 
 // from https://github.com/ethereum/py_ecc/blob/master/py_ecc/secp256k1/secp256k1.py
-// function get_gx(n, k) {
-//     assert(n == 86 && k == 3);
-//     var ret[100];
-//     if (n == 86 && k == 3) {
-//         ret[0] = 17117865558768631194064792;
-//         ret[1] = 12501176021340589225372855;
-//         ret[2] = 9198697782662356105779718;
-//     }
-//     return ret;
-// }
-
-// function get_gy(n, k) {
-//     assert(n == 86 && k == 3);
-//     var ret[100];
-//     if (n == 86 && k == 3) {
-//         ret[0] = 6441780312434748884571320;
-//         ret[1] = 57953919405111227542741658;
-//         ret[2] = 5457536640262350763842127;
-//     }
-//     return ret;
-// }
-
 function get_ed25519_prime(n, k) {
     assert(n == 64 && k == 4);
     var ret[100];
@@ -111,11 +89,6 @@ function ed25519_addunequal_func(n, k, x1, y1, x2, y2){
     var x2_pos[100] = make_positive(n, k, x2);
     var y2_pos[100] = make_positive(n, k, y2);
 
-    // var x1_pos[100] = x1;
-    // var y1_pos[100] = y1;
-    // var x2_pos[100] = x2;
-    // var y2_pos[100] = y2;
-
     for(var i = 0; i < k; i++){
         a[0][i] = x1_pos[i];
         a[1][i] = y1_pos[i];
@@ -165,7 +138,6 @@ function ed25519_double_func(n, k, x1, y1){
     var b[2][100];
 
     var x1_pos[100] = make_positive(n, k, x1);
-    // var x1_pos[100] = x1;
     var y1_pos[100] = make_positive(n, k, y1);
 
     // log("new y1_pos: ", y1_pos[0], y1_pos[1], y1_pos[2], y1_pos[3]);

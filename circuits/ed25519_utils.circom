@@ -3,22 +3,6 @@ pragma circom 2.0.2;
 include "bigint_func.circom";
 
 // 10 registers, 64 bits. registers can be overful
-// adds 43 bits to overflow, so don't input overful registers which are > 208 bits
-// input registers can also be negative; the overall input can be negative as well
-// template Secp256k1PrimeReduce10Registers() {
-//     signal input in[10];
-
-//     signal output out[4];
-//     var offset = (1<<32) + 977; // 33 bits
-//     var offset2 = ((1<<33) * 977) + (977 ** 2); // 43 bits
-    
-//     out[3] <== (offset * in[7]) + in[3];
-//     out[2] <== (offset * in[6]) + in[2] + in[9];
-//     out[1] <== (offset2 * in[9]) + (offset * in[5]) + in[1] + in[8];
-//     out[0] <== (offset2 * in[8]) + (offset * in[4]) + in[0];
-// }
-
-// 10 registers, 64 bits. registers can be overful
 // adds 13 bits to overflow, so don't input overful registers which are > 238 bits
 // input registers can also be negative; the overall input can be negative as well
 template Ed25519PrimeReduce10Registers() {
@@ -35,21 +19,6 @@ template Ed25519PrimeReduce10Registers() {
 }
 
 // 7 registers, 64 bits. registers can be overful
-// adds 33 bits to overflow, so don't input overful registers which are > 218 bits
-// input registers can also be negative; the overall input can be negative as well
-// template Secp256k1PrimeReduce7Registers() {
-//     signal input in[7];
-
-//     signal output out[4];
-//     var offset = (1<<32) + 977; // 33 bits
-    
-//     out[3] <== in[3];
-//     out[2] <== (offset * in[6]) + in[2];
-//     out[1] <== (offset * in[5]) + in[1];
-//     out[0] <== (offset * in[4]) + in[0];
-// }
-
-// 7 registers, 64 bits. registers can be overful
 // adds 7 bits to overflow, so don't input overful registers which are > 244 bits
 // input registers can also be negative; the overall input can be negative as well
 template Ed25519PrimeReduce7Registers() {
@@ -63,31 +32,6 @@ template Ed25519PrimeReduce7Registers() {
     out[1] <== (offset * in[5]) + in[1];
     out[0] <== (offset * in[4]) + in[0];
 }
-
-// template CheckInRangeSecp256k1 () {
-//     signal input in[4];
-//     component range64[4];
-//     for(var i = 0; i < 4; i++){
-//         range64[i] = Num2Bits(64);
-//         range64[i].in <== in[i];
-//     }
-//     component isEqual[3];
-//     signal allEqual[4];
-//     allEqual[0] <== 1;
-//     for(var i = 1; i < 4; i++){
-//         isEqual[i-1] = IsEqual();
-//         isEqual[i-1].in[0] <== in[i];
-//         isEqual[i-1].in[1] <== (1<<64)-1;
-//         allEqual[i] <== allEqual[i-1] * isEqual[i-1].out;
-//     }
-//     signal c;
-//     c <== (1<<64) - ((1<<32) + (1<<9) + (1<<8) + (1<<7) + (1<<6) + (1<<4) + 1);
-//     //lowest register is less than c
-//     component lessThan = LessThan(64);
-//     lessThan.in[0] <== in[0];
-//     lessThan.in[1] <== c;
-//     (1-lessThan.out) * allEqual[3] === 0;
-// }
 
 // check if in < p
 template CheckInRangeEd25519() {
@@ -121,22 +65,6 @@ template CheckInRangeEd25519() {
     allEqual.in[0] <== bitsum;
     allEqual.in[1] <== 250;
 
-    // component isEqual[3];
-    // signal allEqual[4];
-    // allEqual[0] <== 1;
-    // for(var i = 1; i < 4; i++){
-    //     isEqual[i-1] = IsEqual();
-    //     isEqual[i-1].in[0] <== in[i];
-    //     isEqual[i-1].in[1] <== (i == 1) ? ((1 << 63) - 1): ((1 << 64) - 1);
-    //     allEqual[i] <== allEqual[i-1] * isEqual[i-1].out;
-    // }
-    // signal c;
-    // c <== (1<<64) - 19;
-    // //lowest register is less than c
-    // lessThan[1] = LessThan(64);
-    // lessThan[1].in[0] <== in[0];
-    // lessThan[1].in[1] <== c;
-    // (1-lessThan[1].out) * allEqual[3] === 0;
     signal last <== range64[0].out[0] + 2 * range64[0].out[1] + 4 * range64[0].out[2] + 8 * range64[0].out[3] + 16 * range64[0].out[4];
     // check if last < 13
     component lessThanLast = LessThan(5);

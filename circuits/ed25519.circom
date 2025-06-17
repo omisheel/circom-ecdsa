@@ -296,9 +296,6 @@ template Ed25519Double(n, k) {
         y1[i] = in[1][i];
     }
 
-    // log("x1", x1[0], x1[1], x1[2], x1[3]);
-    // log("neg y1", -y1[0], -y1[1], -y1[2], -y1[3]);
-    // log("y1", y1[0], y1[1], y1[2], y1[3]);
     var tmp[2][100] = ed25519_double_func(n, k, x1, y1);
     for(var i = 0; i < k;i++){
         out[0][i] <-- tmp[0][i];
@@ -460,28 +457,6 @@ template Ed25519ScalarMultWindow(n, k) {
         }
     }
 
-
-
-    // for (var i = 0; i < k; i++) {
-    //     windowvalues[1][0][i] <== point[0][i];
-    //     windowvalues[1][1][i] <== point[1][i];
-    //     windowvalues[2][0][i] <== dbl.out[0];
-    //     windowvalues[2][1][i] <== dbl.out[1];
-    // }
-    // component add1[14];
-    // for (var i = 3; i < 16; i++) {
-    //     component add1[i-2] = Ed25519AddUnequal(n, k);
-    //     for (var j = 0; j < 2; j++) {
-    //         for (var l = 0; l < k; l++) {
-    //             add1[i-2].a[j][l] <== windowvalues[i - 1][j][l];
-    //             add1[i-2].b[j][l] <== windowvalues[1][j][l];
-    //         }
-    //     }
-    //     for (var j = 0; j < k; j++) {
-    //         windowvalues[i][0][j] <== add1[i-2].out[0][j];
-    //         windowvalues[i][1][j] <== add1[i-2].out[1][j];
-    //     }
-    // }
     // now do the mux thing
     component mux1[64];
     component mux2[64];

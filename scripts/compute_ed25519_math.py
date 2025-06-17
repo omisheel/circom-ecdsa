@@ -52,10 +52,8 @@ def mont_to_weier(x, y):
 
 def ed_to_weier(x, y):
     """Convert a point from twisted edwards form to weierstrass form."""
-    # assert verify_ed(x, y)
     x_mont, y_mont = ed_to_mont(x, y)
     x_weier, y_weier = mont_to_weier(x_mont, y_mont)
-    # assert verify_weier(x_weier, y_weier)
     return x_weier, y_weier
 
 gx_mont, gy_mont = ed_to_mont(gx_ed, gy_ed)
@@ -117,7 +115,6 @@ def gen_powers():
     stride = 8
     num_strides = 32
     powers = [[[0, 0] for _ in range(1 << stride)] for _ in range(num_strides)]
-    # powers = [[[[0, 0, 0, 0], [0, 0, 0, 0]] for _ in range(256)] for _ in range(32)]
 
     # powers[j][i] = [j * 2**(stride * i) * g]
     for i in range(num_strides):
@@ -127,7 +124,6 @@ def gen_powers():
             elif j == 1:
                 p = powers[i - 1][1]
                 for _ in range(stride):
-                    # assert p != [0, 0], (i, j, _)
                     p = ec_double(p)
                 powers[i][j] = p
             else:
