@@ -513,16 +513,16 @@ template Ed25519ScalarMultWindow(n, k) {
     component partial[64];
     component doubleStep[64][4];
     for (var i = 63; i >= 0; i--) {
-        mux1[i] = Multiplexer(16, k);
+        mux1[i] = Multiplexer(k, 16);
         mux1[i].sel <== base16Comp.out[i] + 8;
-        mux2[i] = Multiplexer(16, k);
+        mux2[i] = Multiplexer(k, 16);
         mux2[i].sel <== base16Comp.out[i] + 8;
         digitZeroCheck[i] = IsEqual();
         digitZeroCheck[i].in[0] <== base16Comp.out[i];
         digitZeroCheck[i].in[1] <== 0;
-        mux3[i] = Multiplexer(2, k);
+        mux3[i] = Multiplexer(k, 2);
         mux3[i].sel <== digitZeroCheck[i].out;
-        mux4[i] = Multiplexer(2, k);
+        mux4[i] = Multiplexer(k, 2);
         mux4[i].sel <== digitZeroCheck[i].out;
 
         for (var j = 0; j < k; j++) {
