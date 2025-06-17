@@ -23,23 +23,6 @@ pragma circom 2.0.2;
 //     return ret;
 // }
 
-// function get_secp256k1_prime(n, k) { // TODO: change to correct prime
-//      assert((n == 86 && k == 3) || (n == 64 && k == 4));
-//      var ret[100];
-//      if (n == 86 && k == 3) {
-//          ret[0] = 77371252455336262886226991;
-//          ret[1] = 77371252455336267181195263;
-//          ret[2] = 19342813113834066795298815;
-//      }
-//      if (n == 64 && k == 4) {
-//          ret[0] = 18446744069414583343;
-//          ret[1] = 18446744073709551615;
-//          ret[2] = 18446744073709551615;
-//          ret[3] = 18446744073709551615;
-//      }
-//      return ret;
-// }
-
 function get_ed25519_prime(n, k) {
     assert(n == 64 && k == 4);
     var ret[100];
@@ -123,11 +106,21 @@ function ed25519_addunequal_func(n, k, x1, y1, x2, y2){
     var a[2][100];
     var b[2][100];
 
+    var x1_pos[100] = make_positive(n, k, x1);
+    var y1_pos[100] = make_positive(n, k, y1);
+    var x2_pos[100] = make_positive(n, k, x2);
+    var y2_pos[100] = make_positive(n, k, y2);
+
+    // var x1_pos[100] = x1;
+    // var y1_pos[100] = y1;
+    // var x2_pos[100] = x2;
+    // var y2_pos[100] = y2;
+
     for(var i = 0; i < k; i++){
-        a[0][i] = x1[i];
-        a[1][i] = y1[i];
-        b[0][i] = x2[i];
-        b[1][i] = y2[i];
+        a[0][i] = x1_pos[i];
+        a[1][i] = y1_pos[i];
+        b[0][i] = x2_pos[i];
+        b[1][i] = y2_pos[i];
     }
 
     var out[2][100];
@@ -171,9 +164,15 @@ function ed25519_double_func(n, k, x1, y1){
     var a[2][100];
     var b[2][100];
 
+    var x1_pos[100] = make_positive(n, k, x1);
+    // var x1_pos[100] = x1;
+    var y1_pos[100] = make_positive(n, k, y1);
+
+    // log("new y1_pos: ", y1_pos[0], y1_pos[1], y1_pos[2], y1_pos[3]);
+
     for(var i = 0; i < k; i++){
-        a[0][i] = x1[i];
-        a[1][i] = y1[i];
+        a[0][i] = x1_pos[i];
+        a[1][i] = y1_pos[i];
     }
 
     var out[2][100];
@@ -216,3 +215,96 @@ function ed25519_double_func(n, k, x1, y1){
 
     return out;
 }
+
+
+// Ensure that the mod-p value x is positive by adding the prime if it is negative
+function make_positive(n, k, x) {
+    assert(n == 64 && k == 4);
+    var p[100] = get_ed25519_prime(n, k);
+    var x2[5];
+    for (var i = 0; i < k; i++) {
+        x2[i] = x[i];
+    }
+    x2[4] = 0;
+    for (var i = 0; i < k; i++) {
+        x2[i + 1] += p[i];
+    }
+    // log("x2", x2[0], x2[1], x2[2], x2[3], x2[4]);
+    // var x3[100] = getProperRepresentation_logging(100, n, 5, x2);
+    // log("x3", x3[0], x3[1], x3[2], x3[3], x3[4], x3[5], x3[6], x3[7], x3[8], x3[9]);
+    var x3[100] = getProperRepresentation(100, n, 5, x2);
+    var div_out[2][100] = long_div(n, k, 10, x3, p);
+    return div_out[1];
+}
+
+
+// // m bits per overflowed register (values are potentially negative)
+// // n bits per properly-sized register
+// // in has k registers
+// // out has k + ceil(m/n) - 1 + 1 registers. highest-order potentially negative,
+// // all others are positive
+// // - 1 since the last register is included in the last ceil(m/n) array
+// // + 1 since the carries from previous registers could push you over
+// function getProperRepresentation_logging(m, n, k, in) {
+//     var ceilMN = 0; // ceil(m/n)
+//     if (m % n == 0) {
+//         ceilMN = m \ n;
+//     } else {
+//         ceilMN = m \ n + 1;
+//     }
+
+//     var pieces[100][100]; // should be pieces[k][ceilMN]
+//     for (var i = 0; i < k; i++) {
+//         for (var j = 0; j < 100; j++) {
+//             pieces[i][j] = 0;
+//         }
+//         if (isNegative(in[i]) == 1) {
+//             // log("negative input: ", i, in[i], -1 * in[i]);
+//             var negPieces[100] = splitOverflowedRegister(m, n, -1 * in[i]);
+//             for (var j = 0; j < ceilMN; j++) {
+//                 pieces[i][j] = -1 * negPieces[j];
+//             }
+//         } else {
+//             // var t1 = (in[i] < 0 ? 1 : 0);
+//             // var t2 = (in[i] > 10944121435919637611123202872628637544274182200208017171849102093287904247808 ? 1 : 0);
+//             // log("positive input: ", i, in[i], -1 * in[i], isNegative(in[i]), t1, t2);
+//             pieces[i] = splitOverflowedRegister(m, n, in[i]);
+//         }
+//     }
+
+//     var out[100]; // should be out[k + ceilMN]
+//     var carries[100]; // should be carries[k + ceilMN]
+//     for (var i = 0; i < 100; i++) {
+//         out[i] = 0;
+//         carries[i] = 0;
+//     }
+//     for (var registerIdx = 0; registerIdx < k + ceilMN; registerIdx++) {
+//         var thisRegisterValue = 0;
+//         if (registerIdx > 0) {
+//             thisRegisterValue = carries[registerIdx - 1];
+//         }
+
+//         var start = 0;
+//         if (registerIdx >= ceilMN) {
+//             start = registerIdx - ceilMN + 1;
+//         }
+
+//         // go from start to min(registerIdx, len(pieces)-1)
+//         for (var i = start; i <= registerIdx; i++) {
+//             if (i < k) {
+//                 thisRegisterValue += pieces[i][registerIdx - i];
+//             }
+//         }
+
+//         if (isNegative(thisRegisterValue) == 1) {
+//             var thisRegisterAbs = -1 * thisRegisterValue;
+//             out[registerIdx] = (1<<n) - (thisRegisterAbs % (1<<n));
+//             carries[registerIdx] = -1 * (thisRegisterAbs >> n) - 1;
+//         } else {
+//             out[registerIdx] = thisRegisterValue % (1<<n);
+//             carries[registerIdx] = thisRegisterValue >> n;
+//         }
+//     }
+
+//     return out;
+// }

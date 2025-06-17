@@ -296,6 +296,9 @@ template Ed25519Double(n, k) {
         y1[i] = in[1][i];
     }
 
+    // log("x1", x1[0], x1[1], x1[2], x1[3]);
+    // log("neg y1", -y1[0], -y1[1], -y1[2], -y1[3]);
+    // log("y1", y1[0], y1[1], y1[2], y1[3]);
     var tmp[2][100] = ed25519_double_func(n, k, x1, y1);
     for(var i = 0; i < k;i++){
         out[0][i] <-- tmp[0][i];
@@ -330,41 +333,6 @@ template Ed25519Double(n, k) {
     }
     x3_eq_x1.out === 0;
 }
-
-// template Base16(n, k) {
-//     signal input in[k];
-//     signal output out[64];
-//     assert(n == 64 && k == 4);
-
-//     component n2b[k];
-//     for (var i = 0; i < k; i++) {
-//         n2b[i] = Num2Bits(n);
-//         n2b[i].in <== in[i];
-//     }
-//     for (var i = 0; i < k; i++) {
-//         for (var j = 0; j < 16; j++) {
-//             out[i * 16 + j] <== n2b[i].out[4 * j] + 2 * n2b[i].out[4 * j + 1] + 4 * n2b[i].out[4 * j + 2] + 8 * n2b[i].out[4 * j + 3];
-//         }
-//     }
-// }
-
-// template CheckBase16Dig() {
-
-//     signal input in;
-
-//     var x = in;
-
-//     signal bits[4];
-//     for (var i = 0; i < 4; i++) {
-//         bits[i] <-- (x + 8) & 1;
-//         x += bits[i];
-//         x /= 2;
-//         bits[i] * (bits[i] - 1) === 0; // bits[i] must be 0 or 1
-//     }
-
-//     in === -bits[0] - 2 * bits[1] - 4 * bits[2] + 8 * bits[3]; // in must be a valid base 16 digit
-    
-// }
 
 template CheckBase16Dig() {
 
@@ -433,6 +401,7 @@ template Ed25519ScalarMultWindow(n, k) {
     assert(n == 64 && k == 4);
 
     signal input scalar[k];
+    assert(scalar[3] < (1 << 61)); // scallar should be less than 2^253
     signal input point[2][k];
 
     var order[k] = get_ed25519_order(64, 4); 
