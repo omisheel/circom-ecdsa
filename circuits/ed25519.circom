@@ -524,10 +524,6 @@ template Ed25519ScalarMultWindow(n, k) {
         digitZeroCheck[i] = IsEqual();
         digitZeroCheck[i].in[0] <== base16Comp.out[i];
         digitZeroCheck[i].in[1] <== 0;
-        mux3[i] = Multiplexer(k, 2);
-        mux3[i].sel <== digitZeroCheck[i].out;
-        mux4[i] = Multiplexer(k, 2);
-        mux4[i].sel <== digitZeroCheck[i].out;
 
         for (var j = 0; j < k; j++) {
             for (var l = 0; l < 16; l++) {
@@ -553,6 +549,11 @@ template Ed25519ScalarMultWindow(n, k) {
                 partial[i].b[0][j] <== mux1[i].out[j];
                 partial[i].b[1][j] <== mux2[i].out[j];
             }
+
+            mux3[i] = Multiplexer(k, 2);
+            mux3[i].sel <== digitZeroCheck[i].out;
+            mux4[i] = Multiplexer(k, 2);
+            mux4[i].sel <== digitZeroCheck[i].out;
             
             for (var j = 0; j < k; j++) {
                 mux3[i].inp[0][j] <== partial[i].out[0][j];
