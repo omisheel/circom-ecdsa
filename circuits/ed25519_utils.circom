@@ -95,33 +95,55 @@ template CheckInRangeEd25519() {
     component lessThan[2];
 
     //lessThan[0] for in[3] < 2^63
-    lessThan[0] = LessThan(64);
-    lessThan[0].in[0] <== in[3];
-    lessThan[0].in[1] <== (1 << 63);
-    lessThan[0].out === 1;
+    // lessThan[0] = LessThan(64);
+    // lessThan[0].in[0] <== in[3];
+    // lessThan[0].in[1] <== (1 << 63);
+    // lessThan[0].out === 1;
 
     //now check is similar to secp256k1
     component range64[4];
     for(var i = 0; i < 4; i++){
-        range64[i] = Num2Bits(64);
+        if (i == 3) {
+            range64[i] = Num2Bits(63);
+        } else {
+            range64[i] = Num2Bits(64);
+        }
         range64[i].in <== in[i];
     }
-    component isEqual[3];
-    signal allEqual[4];
-    allEqual[0] <== 1;
-    for(var i = 1; i < 4; i++){
-        isEqual[i-1] = IsEqual();
-        isEqual[i-1].in[0] <== in[i];
-        isEqual[i-1].in[1] <== (i == 1) ? ((1 << 63) - 1): ((1<<64)-1);
-        allEqual[i] <== allEqual[i-1] * isEqual[i-1].out;
+    var bitsum = 0;
+    for (var i = 0; i < 4; i++) {
+        for (var j = ((i == 0) ? 5 : 0); j < ((i == 3) ? 63 : 64); j++) {
+            bitsum += range64[i].out[j];
+        }
     }
-    signal c;
-    c <== (1<<64) - 19;
-    //lowest register is less than c
-    lessThan[1] = LessThan(64);
-    lessThan[1].in[0] <== in[0];
-    lessThan[1].in[1] <== c;
-    (1-lessThan[1].out) * allEqual[3] === 0;
+    // bitsum will equal 250 if top 250 bits are all 1
+    component allEqual = IsEqual();
+    allEqual.in[0] <== bitsum;
+    allEqual.in[1] <== 250;
+
+    // component isEqual[3];
+    // signal allEqual[4];
+    // allEqual[0] <== 1;
+    // for(var i = 1; i < 4; i++){
+    //     isEqual[i-1] = IsEqual();
+    //     isEqual[i-1].in[0] <== in[i];
+    //     isEqual[i-1].in[1] <== (i == 1) ? ((1 << 63) - 1): ((1 << 64) - 1);
+    //     allEqual[i] <== allEqual[i-1] * isEqual[i-1].out;
+    // }
+    // signal c;
+    // c <== (1<<64) - 19;
+    // //lowest register is less than c
+    // lessThan[1] = LessThan(64);
+    // lessThan[1].in[0] <== in[0];
+    // lessThan[1].in[1] <== c;
+    // (1-lessThan[1].out) * allEqual[3] === 0;
+    signal last <== range64[0].out[0] + 2 * range64[0].out[1] + 4 * range64[0].out[2] + 8 * range64[0].out[3] + 16 * range64[0].out[4];
+    // check if last < 13
+    component lessThanLast = LessThan(5);
+    lessThanLast.in[0] <== 13;
+    lessThanLast.in[1] <== last;
+    // if last >= 13, then the input is not in range
+    (1 - lessThanLast.out) * allEqual.out === 0;
 }
 
 // 64 bit registers with m-bit overflow

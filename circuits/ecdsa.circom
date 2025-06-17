@@ -187,7 +187,7 @@ template ECDSAVerifyNoPubkeyCheck(n, k) {
     }
 
     // compute (r * sinv) * pubkey
-    component pubkey_mult = Ed25519ScalarMult(n, k);
+    component pubkey_mult = Ed25519ScalarMultWindow(n, k);
     for (var idx = 0; idx < k; idx++) {
         pubkey_mult.scalar[idx] <== pubkey_coeff.out[idx];
         pubkey_mult.point[0][idx] <== pubkey[0][idx];
@@ -251,7 +251,7 @@ template ed25519SSHVerifyNoPubkeyCheck(n, k) {
     }
     
     // m * A
-    component scalarMult = Ed25519ScalarMult(n, k);
+    component scalarMult = Ed25519ScalarMultWindow(n, k);
     for (var i = 0; i < k; i++) scalarMult.scalar[i] <== m[i];
     for (var i = 0; i < 2; i++) {
         for (var j = 0; j < k; j++) {

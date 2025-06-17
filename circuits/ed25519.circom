@@ -331,6 +331,238 @@ template Ed25519Double(n, k) {
     x3_eq_x1.out === 0;
 }
 
+// template Base16(n, k) {
+//     signal input in[k];
+//     signal output out[64];
+//     assert(n == 64 && k == 4);
+
+//     component n2b[k];
+//     for (var i = 0; i < k; i++) {
+//         n2b[i] = Num2Bits(n);
+//         n2b[i].in <== in[i];
+//     }
+//     for (var i = 0; i < k; i++) {
+//         for (var j = 0; j < 16; j++) {
+//             out[i * 16 + j] <== n2b[i].out[4 * j] + 2 * n2b[i].out[4 * j + 1] + 4 * n2b[i].out[4 * j + 2] + 8 * n2b[i].out[4 * j + 3];
+//         }
+//     }
+// }
+
+// template CheckBase16Dig() {
+
+//     signal input in;
+
+//     var x = in;
+
+//     signal bits[4];
+//     for (var i = 0; i < 4; i++) {
+//         bits[i] <-- (x + 8) & 1;
+//         x += bits[i];
+//         x /= 2;
+//         bits[i] * (bits[i] - 1) === 0; // bits[i] must be 0 or 1
+//     }
+
+//     in === -bits[0] - 2 * bits[1] - 4 * bits[2] + 8 * bits[3]; // in must be a valid base 16 digit
+    
+// }
+
+template CheckBase16Dig() {
+
+    signal input in;
+
+    var x = in;
+
+    signal bits[4];
+    for (var i = 0; i < 4; i++) {
+        bits[i] <-- (x + 8) % 2;
+        x = x - bits[i];
+        x /= 2;
+        bits[i] * (bits[i] - 1) === 0; // bits[i] must be 0 or 1
+    }
+
+    in === bits[0] + 2 * bits[1] + 4 * bits[2] - 8 * bits[3]; // in must be a valid base 16 digit
+    
+}
+
+
+template Base16(n, k) {
+    
+    assert(n == 64 && k == 4);
+    
+    signal input in[k];
+    
+    var m = n * k / 4;
+    assert(m == 64);
+    
+    signal output out[m];
+    signal carry[k];
+    
+    component dig_checks[m];
+
+    var rep[2][100] = to_base16(n, k, in);
+
+    for (var i = 0; i < m; i++) {
+        out[i] <-- rep[0][i];
+        dig_checks[i] = CheckBase16Dig();
+        dig_checks[i].in <== out[i];
+    }
+
+    for (var i = 0; i < k - 1; i++) {
+        carry[i] <-- rep[1][i];
+        carry[i] * (carry[i] - 1) === 0; // carry[i] must be 0 or 1
+    }
+    carry[k - 1] <== 0; // last carry must be 0
+
+    var accum[k];
+    for (var i = 0; i < k; i++) {
+        accum[i] = in[i];
+        if (i > 0) {
+            accum[i] += carry[i - 1];
+        }
+        for (var j = 0; j < n / 4; j++) {
+            accum[i] -= (1 << (4 * j)) * out[i * 16 + j];
+        }
+        accum[i] === carry[i] * (1 << n);
+    }
+
+}
+
+
+
+template Ed25519ScalarMultWindow(n, k) {
+    assert(n == 64 && k == 4);
+
+    signal input scalar[k];
+    signal input point[2][k];
+
+    signal output out[2][k];
+    //calculate window
+    signal windowvalues[16][2][k];
+    //window[8 + d] is d * point
+    for (var i = 0; i < k; i++) { // set window[7] = -point
+        windowvalues[7][0][i] <== point[0][i];
+        windowvalues[7][1][i] <== -point[1][i];
+    }
+    component comp[7];
+    for (var d = 2; d <= 8; d++) { // calculate -d * point for d = 2..8
+        if (d % 2 == 0) {
+            comp[d - 2] = Ed25519Double(n, k);
+            for (var i = 0; i < k; i++) {
+                comp[d - 2].in[0][i] <== windowvalues[8 - (d / 2)][0][i];
+                comp[d - 2].in[1][i] <== windowvalues[8 - (d / 2)][1][i];
+            }
+            for (var i = 0; i < k; i++) {
+                windowvalues[8 - d][0][i] <== comp[d - 2].out[0][i];
+                windowvalues[8 - d][1][i] <== comp[d - 2].out[1][i];
+            }
+        } else {
+            comp[d - 2] = Ed25519AddUnequal(n, k);
+            for (var i = 0; i < k; i++) {
+                comp[d - 2].a[0][i] <== windowvalues[8 - (d - 1)][0][i];
+                comp[d - 2].a[1][i] <== windowvalues[8 - (d - 1)][1][i];
+                comp[d - 2].b[0][i] <== windowvalues[7][0][i];
+                comp[d - 2].b[1][i] <== windowvalues[7][1][i];
+            }
+            for (var i = 0; i < k; i++) {
+                windowvalues[8 - d][0][i] <== comp[d - 2].out[0][i];
+                windowvalues[8 - d][1][i] <== comp[d - 2].out[1][i];
+            }
+        }
+    }
+
+    // for (var i = 0; i < k; i++) {
+    //     windowvalues[1][0][i] <== point[0][i];
+    //     windowvalues[1][1][i] <== point[1][i];
+    //     windowvalues[2][0][i] <== dbl.out[0];
+    //     windowvalues[2][1][i] <== dbl.out[1];
+    // }
+    // component add1[14];
+    // for (var i = 3; i < 16; i++) {
+    //     component add1[i-2] = Ed25519AddUnequal(n, k);
+    //     for (var j = 0; j < 2; j++) {
+    //         for (var l = 0; l < k; l++) {
+    //             add1[i-2].a[j][l] <== windowvalues[i - 1][j][l];
+    //             add1[i-2].b[j][l] <== windowvalues[1][j][l];
+    //         }
+    //     }
+    //     for (var j = 0; j < k; j++) {
+    //         windowvalues[i][0][j] <== add1[i-2].out[0][j];
+    //         windowvalues[i][1][j] <== add1[i-2].out[1][j];
+    //     }
+    // }
+    // now do the mux thing
+    component mux1[64];
+    component mux2[64];
+    component mux3[64];
+    component mux4[64];
+    component base16Comp = Base16(n, k);
+    
+    signal accum[64][2][k];
+    component digitZeroCheck[64];
+    component partial[64];
+    component doubleStep[64][4];
+    for (var i = 63; i >= 0; i--) {
+        mux1[i] = Multiplexer(16, k);
+        mux1[i].select <== base16Comp.out[i] + 8;
+        mux2[i] = Multiplexer(16, k);
+        mux2[i].select <== base16Comp.out[i] + 8;
+        digitZeroCheck[i] = IsEqual();
+        digitZeroCheck[i].in[0] <== base16Comp.out[i];
+        digitZeroCheck[i].in[1] <== 0;
+        mux3[i] = Multiplexer(2, k);
+        mux3[i].select <== digitZeroCheck[i].out;
+        mux4[i] = Multiplexer(2, k);
+        mux4[i].select <== digitZeroCheck[i].out;
+
+        for (var j = 0; j < k; j++) {
+            for (var l = 0; l < 16; l++) {
+                mux1[i].in[l][j] <== windowvalues[l][0][j];
+                mux2[i].in[l][j] <== windowvalues[l][1][j];
+            }
+        }
+
+        if (i < 63) {
+            // do *16
+            for (var j = 0; j < 3; j++) {
+                doubleStep[i][j] = Ed25519Double(n, k);
+                for (var l = 0; l < k; l++) {
+                    doubleStep[i][j].in[0][l] <== (j == 0) ? accum[i + 1][0][l] : doubleStep[i][j - 1].out[0][l];
+                    doubleStep[i][j].in[1][l] <== (j == 0) ? accum[i + 1][1][l] : doubleStep[i][j - 1].out[1][l];
+                }
+            }
+
+            partial[i] = Ed25519AddUnequal(n, k);
+            for (var j = 0; j < k; j++) {
+                partial[i].a[0][j] <== doubleStep[i][2].out[0][j];
+                partial[i].a[1][j] <== doubleStep[i][2].out[1][j];
+                partial[i].b[0][j] <== mux1[i].out[j];
+                partial[i].b[1][j] <== mux2[i].out[j];
+            }
+            
+            for (var j = 0; j < k; j++) {
+                mux3[i].in[0][j] <== partial[i].out[0][j];
+                mux3[i].in[1][j] <== doubleStep[i][2].out[0][j];
+                mux4[i].in[0][j] <== partial[i].out[1][j];
+                mux4[i].in[1][j] <== doubleStep[i][2].out[1][j];
+            }
+            for (var j = 0; j < k; j++) {
+                accum[i][0][j] <== mux3[i].out[j];
+                accum[i][1][j] <== mux4[i].out[j];
+            }
+        } else {
+            for (var j = 0; j < k; j++) {
+                accum[i][0][j] <== mux1[i].out[j];
+                accum[i][1][j] <== mux2[i].out[j];
+            }
+        }
+    }
+
+    for (var i = 0; i < k; i++) {
+        out[0][i] <== accum[0][0][i];
+        out[1][i] <== accum[0][1][i];
+    }
+}
+
 template Ed25519ScalarMult(n, k) {
     signal input scalar[k];
     signal input point[2][k];

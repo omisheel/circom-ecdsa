@@ -440,3 +440,30 @@ function prod_mod_p(n, k, a, b, p){
     result = long_div(n, k, k, tmp, p);
     return result[1];
 }
+
+// converts number to base 16, but each digit ranges from -8 to 7
+function to_base16(n, k, in) {
+    assert(n == 64 && k == 4);
+    var out[2][100]; // out[0] is the base 16 digits, out[1] is the carry
+    // var carry = 0;
+    for (var i = 0; i < k; i++) {
+        var x = in[i];
+        if (i > 0) {
+            x += out[1][i - 1];
+        }
+        for (var j = 0; j < 16; j++) {
+            var d = x % 16;
+            if (d >= 8) {
+                d -= 16;
+            }
+            out[0][i * 16 + j] = d;
+            x = (x - d) / 16;
+        }
+        if (i < k - 1) {
+            out[1][i] = x;
+        } else {
+            assert(x == 0);
+        }
+    }
+    return out;
+}
